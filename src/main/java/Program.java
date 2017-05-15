@@ -2,8 +2,11 @@ import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
+import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -12,7 +15,11 @@ import java.util.Scanner;
 public class Program {
 
     final static String[] measurands =
-            { "PM10", "Ruß", "Stickstoffdioxid", "Benzol", "Kohlenmonoxid", "Ozon", "Schwefeldioxid"};
+            {
+                    "PM10", "Ruß", "Stickstoffdioxid", "Benzol",
+                    "Kohlenmonoxid", "Ozon", "Schwefeldioxid", "Benzol",
+                    "Kohlenmonoxid", "Ozon", "Schwefeldioxid"
+            };
 
     public static void main(String[] args) throws IOException {
         final String urlFormat =
@@ -33,15 +40,29 @@ public class Program {
 
         //TODO get & check header
 
-        JsonGenerator jsonGenerator;//TODO = Json.createGenerator
+        StringWriter stringWriter = new StringWriter();
+        JsonGenerator jsonGenerator = Json.createGenerator(stringWriter);
 
-        for (Element row : table.getElementsByTag("tr")) {
+        Elements rows = table.getElementsByTag("tr");
+
+        //ArrayList<String> measurands = new ArrayList<String>();
+        ArrayList<String> frequencies = new ArrayList<>();
+        Element fRow = rows.eq(1).first();
+
+        for (int i = 1; i <= fRow.children().size(); i++) {
+            frequencies.add(fRow.children().eq(i).text());
+        }
+
+        for (Element row : rows) {
             Elements cells = row.getElementsByTag("td");
 
-            if (!cells.first().text().matches("^\\d{3}&nbsp;\\w*$"))
-                continue;
+//            if (!cells.first().text().matches("^\\d{3}[ ][a-zA-ZäöüÄÖÜß]+"))
+//                continue; TODO regex not working :\
 
-            String[] sensorTokens = cells.first().text().split("&nbsp;");
+            String[] sensorTokens = cells.first().text().split(" ");
+
+            if (sensorTokens.length != 2)
+                continue; //HACK
 
             jsonGenerator.writeStartObject()
                     .write("date", date)
@@ -51,9 +72,15 @@ public class Program {
                     .writeEnd()
                     .writeStartArray("measuremnts");
 
-            for (int i = 0; i < row.children().size(); i++) {
+            for (int i = 0; i < cells.size(); i++) {
+                //String key = measurands[i-1]; //TODO
+                String key = frequencies.get(i);
+                String value = cells.eq(i).text();
+
+                if (value == "---") value = "";
+
                 jsonGenerator.writeStartObject()
-                        .write(measurands[i], row.children().indexOf(i+1))
+                        .write(key, value)
                         .writeEnd();
             }
 
@@ -61,5 +88,8 @@ public class Program {
                     .writeEnd() //end array
                     .writeEnd(); //end root object
         }
+
+        jsonGenerator.flush();
+        System.out.println(stringWriter.toString());
     }
 }
