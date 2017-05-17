@@ -14,12 +14,13 @@ import java.util.Scanner;
  */
 public class Program {
 
-    final static String[] measurands =
+    private final static String[] MEASURANDS =
             {
-                    "PM10", "Ruß", "Stickstoffdioxid", "Benzol",
-                    "Kohlenmonoxid", "Ozon", "Schwefeldioxid", "Benzol",
+                    "Partikel-PM10", "Ruß", "Stickstoffdioxid", "Benzol",
                     "Kohlenmonoxid", "Ozon", "Schwefeldioxid"
             };
+
+    private static final int EXPECTED_FREQUENCY_CELLS = 14;
 
     public static void main(String[] args) throws IOException {
         final String urlFormat =
@@ -47,49 +48,73 @@ public class Program {
 
         //ArrayList<String> measurands = new ArrayList<String>();
         ArrayList<String> frequencies = new ArrayList<>();
-        Element fRow = rows.eq(1).first();
+        Element frequenciesRow = rows.eq(1).first();
+        Elements frequencyCells = frequenciesRow.children();
+        frequencyCells.remove(0); //skip first cell
 
-        for (int i = 1; i <= fRow.children().size(); i++) {
-            frequencies.add(fRow.children().eq(i).text());
+        if (frequencyCells.size() != EXPECTED_FREQUENCY_CELLS) {
+            System.out.println("Unexpected number of frequency cells. Expected: " + EXPECTED_FREQUENCY_CELLS + ", found: " + frequencyCells.size());
         }
 
-        for (Element row : rows) {
+        for (Element cell : frequencyCells) {
+            String headerText = cell.text().trim();
+
+            if (!headerText.isEmpty())
+                frequencies.add(headerText);
+        }
+
+        jsonGenerator.writeStartObject() //root object
+                .write("date", date)
+                .writeStartArray("stations");
+
+        for (int i = 0; i <= rows.size(); i++) {
+            Element row = rows.get(2);
             Elements cells = row.getElementsByTag("td");
 
 //            if (!cells.first().text().matches("^\\d{3}[ ][a-zA-ZäöüÄÖÜß]+"))
 //                continue; TODO regex not working :\
 
-            String[] sensorTokens = cells.first().text().split(" ");
+            Element stationCell = cells.remove(0);
+            String[] stationTokens = stationCell.text().split("\u00a0");
 
-            if (sensorTokens.length != 2)
-                continue; //HACK
-
-            jsonGenerator.writeStartObject()
-                    .write("date", date)
-                    .writeStartObject("sensor")
-                    .write("id", sensorTokens[0].substring(0,3))
-                    .write("name", sensorTokens[1])
-                    .writeEnd()
-                    .writeStartArray("measuremnts");
-
-            for (int i = 0; i < cells.size(); i++) {
-                //String key = measurands[i-1]; //TODO
-                String key = frequencies.get(i);
-                String value = cells.eq(i).text();
-
-                if (value == "---") value = "";
-
-                jsonGenerator.writeStartObject()
-                        .write(key, value)
-                        .writeEnd();
+            if (stationTokens.length != 2) {
+                System.out.println("Station tokens != 2");
+                return;
             }
 
-            jsonGenerator
-                    .writeEnd() //end array
-                    .writeEnd(); //end root object
+
+            jsonGenerator.writeStartObject()
+                        .write("id", stationTokens[0])
+                        .write("name", stationTokens[1])
+                        .writeStartArray("measurements");
+
+            for (int j = 0; j < MEASURANDS.length; j++) {
+                String measurand = MEASURANDS[j];
+
+                for (int offset = 0; offset < 2; offset++){
+                    int index = (j*2) + offset;
+                    String frequency = frequencies.get(index);
+                    String value = cells.eq(index).text();
+
+                    if (value.equals("---"))
+                        value = "";
+
+                    jsonGenerator.writeStartObject()
+                            .write("measurand", measurand)
+                            .write("valueType", frequency)
+                            .write("value", value)
+                    .writeEnd();
+                }
+            }
+
+            jsonGenerator.writeEnd(); //end measurements array
+            jsonGenerator.writeEnd(); //end station object
         }
 
-        jsonGenerator.flush();
+        jsonGenerator.writeEnd(); //end sensor array
+        jsonGenerator.writeEnd(); //end root object
+        jsonGenerator.close();
+
         System.out.println(stringWriter.toString());
     }
 }
