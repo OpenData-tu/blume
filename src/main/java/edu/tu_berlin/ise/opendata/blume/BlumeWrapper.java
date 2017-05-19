@@ -1,18 +1,21 @@
-import org.jsoup.*;
-import org.jsoup.nodes.*;
-import org.jsoup.select.*;
+package edu.tu_berlin.ise.opendata.blume;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
-import java.io.IOException;
 import java.io.StringWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * @author Andres Ardila
  */
-public class Program {
+public class BlumeWrapper {
 
     private final static String[] MEASURANDS =
             {
@@ -21,16 +24,13 @@ public class Program {
             };
 
     private static final int EXPECTED_FREQUENCY_CELLS = 14;
+    private static final String URL_FORMAT =
+            "http://www.stadtentwicklung.berlin.de/umwelt/luftqualitaet/de/messnetz/tageswerte/download/%s.html";
 
-    public static void main(String[] args) throws IOException {
-        final String urlFormat =
-                "http://www.stadtentwicklung.berlin.de/umwelt/luftqualitaet/de/messnetz/tageswerte/download/%s.html";
+    public static String getDailyMeasurements(LocalDate date) throws Exception {
 
-        Scanner reader = new Scanner(System.in);
-        System.out.print("> ");
-        String date = reader.nextLine();
-
-        final String url = String.format(urlFormat, date);
+        String formattedDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+        final String url = String.format(URL_FORMAT, formattedDate);
 
         Document doc = Jsoup.connect(url).get();
         //TODO get/check output is as expected
@@ -64,24 +64,25 @@ public class Program {
         }
 
         jsonGenerator.writeStartObject() //root object
-                .write("date", date)
+                .write("date", formattedDate)
                 .writeStartArray("stations");
 
-        for (int i = 0; i <= rows.size(); i++) {
-            Element row = rows.get(2);
+        //skip first two header rows
+        for (int i = 2; i < rows.size(); i++) {
+            Element row = rows.get(i);
             Elements cells = row.getElementsByTag("td");
 
 //            if (!cells.first().text().matches("^\\d{3}[ ][a-zA-ZäöüÄÖÜß]+"))
 //                continue; TODO regex not working :\
 
             Element stationCell = cells.remove(0);
-            String[] stationTokens = stationCell.text().split("\u00a0");
+            String stationText = stationCell.text();
+            String[] stationTokens = stationText.split("\u00a0");
 
             if (stationTokens.length != 2) {
-                System.out.println("Station tokens != 2");
-                return;
+                System.out.println("Station tokens != 2. Input string was '"+ stationText + "'");
+                continue;
             }
-
 
             jsonGenerator.writeStartObject()
                         .write("id", stationTokens[0])
@@ -115,6 +116,6 @@ public class Program {
         jsonGenerator.writeEnd(); //end root object
         jsonGenerator.close();
 
-        System.out.println(stringWriter.toString());
+        return stringWriter.toString();
     }
 }
