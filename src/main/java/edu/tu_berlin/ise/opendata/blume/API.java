@@ -29,7 +29,7 @@ public class API {
         get("/", (request, response) -> "hello!");
 
         get("/stations", (request, response) -> {
-            response.type("application/json");
+            response.type("application/json; charset=utf-8");
             URL resource = API.class.getClassLoader().getResource("messstationen.json");
             Path path = Paths.get(resource.toURI());
             byte[] bytes = Files.readAllBytes(path);
@@ -50,7 +50,7 @@ public class API {
                 halt(400);
             }
 
-            response.type("application/json");
+            response.type("application/json; charset=utf-8");
             return BlumeWrapper.getDailyMeasurements(date);
         }));
     }
