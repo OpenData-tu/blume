@@ -6,7 +6,7 @@ A RESTful API to retrieve particulate matter sensor data from the [BLUME sensor 
 
 ```
 $ docker build -t blume-api .
-$ docker run -p 4567:4567 blume
+$ docker run -p 4567:4567 blume-api
 ```
 
 ## API
