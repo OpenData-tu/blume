@@ -64,7 +64,8 @@ public class BlumeWrapper {
         }
 
         jsonGenerator.writeStartObject() //root object
-                .write("date", formattedDate)
+                .write("date", date.toString())
+                .write("url", url)
                 .writeStartArray("stations");
 
         //skip first two header rows
