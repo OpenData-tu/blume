@@ -1,10 +1,12 @@
-# Based on https://sparktutorials.github.io/2015/04/14/getting-started-with-spark-and-docker.html
-
-FROM java:8
+#FROM java:8
+FROM openjdk:8-alpine
+#FROM maven:alpine
 
 # Install maven
-RUN apt-get update
-RUN apt-get install -y maven
+#RUN apt-get update
+#RUN apt-get install -y maven
+RUN apk update
+RUN apk add maven
 
 WORKDIR /code
 
@@ -18,4 +20,4 @@ ADD src /code/src
 RUN ["mvn", "package"]
 
 EXPOSE 4567
-CMD ["/usr/lib/jvm/java-8-openjdk-amd64/bin/java", "-jar", "target/blume-jar-with-dependencies.jar"]
+CMD ["java", "-jar", "target/blume-jar-with-dependencies.jar"]

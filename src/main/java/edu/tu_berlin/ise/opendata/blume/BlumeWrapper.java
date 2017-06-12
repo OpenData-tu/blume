@@ -46,7 +46,6 @@ public class BlumeWrapper {
 
         Elements rows = table.getElementsByTag("tr");
 
-        //ArrayList<String> measurands = new ArrayList<String>();
         ArrayList<String> frequencies = new ArrayList<>();
         Element frequenciesRow = rows.eq(1).first();
         Elements frequencyCells = frequenciesRow.children();
