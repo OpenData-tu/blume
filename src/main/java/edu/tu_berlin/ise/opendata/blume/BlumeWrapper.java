@@ -1,5 +1,9 @@
 package edu.tu_berlin.ise.opendata.blume;
 
+import edu.tu_berlin.ise.opendata.blume.model.DailyMeasurements;
+import edu.tu_berlin.ise.opendata.blume.model.Measurement;
+import edu.tu_berlin.ise.opendata.blume.model.Station;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,6 +15,7 @@ import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author Andres Ardila
@@ -26,13 +31,24 @@ public class BlumeWrapper {
     private static final int EXPECTED_FREQUENCY_CELLS = 14;
     private static final String URL_FORMAT =
             "http://www.stadtentwicklung.berlin.de/umwelt/luftqualitaet/de/messnetz/tageswerte/download/%s.html";
+    private static final String MEASUREMENT_UNIT = "µg/m³";
 
-    public static String getDailyMeasurements(LocalDate date) throws Exception {
-
+    private static String getDailyUrl(LocalDate date) {
         String formattedDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
-        final String url = String.format(URL_FORMAT, formattedDate);
+        return String.format(URL_FORMAT, formattedDate);
+    }
 
-        Document doc = Jsoup.connect(url).get();
+    public static DailyMeasurements getDailyMeasurements(LocalDate date) throws Exception {
+
+        final String url = getDailyUrl(date);
+        Connection.Response response = Jsoup.connect(url).execute();
+
+        if (response.statusCode() == 404) {
+            throw new Exception("No data is available for " + date.toString());
+        }
+
+        Document doc = response.parse();
+
         //TODO get/check output is as expected
 
         Element table = doc.select("table.datenhellgrauklein").first();
@@ -62,10 +78,11 @@ public class BlumeWrapper {
                 frequencies.add(headerText);
         }
 
-        jsonGenerator.writeStartObject() //root object
-                .write("date", date.toString())
-                .write("url", url)
-                .writeStartArray("stations");
+        DailyMeasurements dailyMeasurements = new DailyMeasurements();
+        dailyMeasurements.date = date;
+        dailyMeasurements.url = url;
+
+        HashMap<Station, Measurement[]> stationMeasurements = new HashMap<>();
 
         //skip first two header rows
         for (int i = 2; i < rows.size(); i++) {
@@ -84,13 +101,20 @@ public class BlumeWrapper {
                 continue;
             }
 
-            jsonGenerator.writeStartObject()
-                        .write("id", stationTokens[0])
-                        .write("name", stationTokens[1])
-                        .writeStartArray("measurements");
+            String stationId = stationTokens[0];
+            String stationName = stationTokens[1];
+
+            Station station = new Station();
+            station.id = stationId;
+            station.name = stationName;
+
+            ArrayList<Measurement> measurements = new ArrayList<>();
 
             for (int j = 0; j < MEASURANDS.length; j++) {
                 String measurand = MEASURANDS[j];
+                Measurement measurement = new Measurement();
+                measurement.date = date;
+                measurement.station = station;
 
                 for (int offset = 0; offset < 2; offset++){
                     int index = (j*2) + offset;
@@ -98,24 +122,21 @@ public class BlumeWrapper {
                     String value = cells.eq(index).text();
 
                     if (value.equals("---"))
-                        value = "";
+                        value = null;
 
-                    jsonGenerator.writeStartObject()
-                            .write("measurand", measurand)
-                            .write("valueType", frequency)
-                            .write("value", value)
-                    .writeEnd();
+                    measurement.measurand = measurand;
+                    measurement.measurementType = frequency;
+                    measurement.value = value == null ? null : Double.parseDouble(value);
+                    measurement.unit = MEASUREMENT_UNIT;
                 }
+
+                measurements.add(measurement);
             }
 
-            jsonGenerator.writeEnd(); //end measurements array
-            jsonGenerator.writeEnd(); //end station object
+            stationMeasurements.put(station, measurements.toArray(new Measurement[0]));
         }
 
-        jsonGenerator.writeEnd(); //end sensor array
-        jsonGenerator.writeEnd(); //end root object
-        jsonGenerator.close();
-
-        return stringWriter.toString();
+        dailyMeasurements.stationMeasurements = stationMeasurements;
+        return dailyMeasurements;
     }
 }
