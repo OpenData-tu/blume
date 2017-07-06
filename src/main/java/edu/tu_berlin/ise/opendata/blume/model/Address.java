@@ -1,7 +1,7 @@
 package edu.tu_berlin.ise.opendata.blume.model;
 
 /**
- * Created by artichoke on 7/5/17.
+ * Created by aardila on 7/5/17.
  */
 public class Address {
 

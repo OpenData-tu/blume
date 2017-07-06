@@ -3,7 +3,7 @@ package edu.tu_berlin.ise.opendata.blume.model;
 import java.time.LocalDate;
 
 /**
- * Created by artichoke on 7/5/17.
+ * Created by aardila on 7/5/17.
  */
 public class Measurement {
     public LocalDate date;

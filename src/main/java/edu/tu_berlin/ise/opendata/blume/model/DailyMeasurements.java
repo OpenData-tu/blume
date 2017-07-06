@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 /**
- * Created by artichoke on 7/5/17.
+ * Created by aardila on 7/5/17.
  */
 public class DailyMeasurements {
     public LocalDate date;
