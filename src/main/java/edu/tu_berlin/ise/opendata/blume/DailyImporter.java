@@ -23,7 +23,8 @@ public class DailyImporter {
         final String kafkaServer = System.getenv(KAFKA_SERVER_ENV_VAR_KEY);
 
         if (kafkaServer == null || kafkaServer.isEmpty()) {
-            throw new Exception(String.format("Env var %s was not present", KAFKA_SERVER_ENV_VAR_KEY));
+            throw new Exception(
+                    String.format("Mandatory environment variable %s was not set", KAFKA_SERVER_ENV_VAR_KEY));
         }
 
 //        System.out.println("Waiting for Kafka to spin up. Sleeping for 20 s...");
