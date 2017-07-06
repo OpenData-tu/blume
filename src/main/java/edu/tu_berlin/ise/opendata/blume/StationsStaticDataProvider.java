@@ -11,22 +11,31 @@ import java.io.InputStream;
 import java.util.HashMap;
 
 /**
- * Created by artichoke on 7/5/17.
+ * Created by aardila on 7/5/17.
  */
 public class StationsStaticDataProvider {
 
     private static final String RESOURCE_FILENAME = "stations.json";
+    private static final String RESOURCE_FILE_ENCODING = "UTF-8";
 
     private static HashMap<String, Station> StationsHashMap;
 
     static {
         try {
-            String stationsResourceFileContent = getResourceFileAsString("stations.json", "UTF-8");
+            //load the resource file as a string
+            String stationsResourceFileContent =
+                    getResourceFileAsString(RESOURCE_FILENAME, RESOURCE_FILE_ENCODING);
+
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(Coordinates.class, new CoordinatesDeserializer())
                     .create();
+
+            //deserialize the resource file's json as an array of Station objects
             Station[] stations = gson.fromJson(stationsResourceFileContent, Station[].class);
+
+            //Populate our map with the entries in the resource file
             StationsHashMap = new HashMap<>(stations.length);
+
             for (int i = 0; i < stations.length; i++) {
                 StationsHashMap.put(stations[i].id, stations[i]);
             }
