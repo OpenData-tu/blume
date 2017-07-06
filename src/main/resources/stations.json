@@ -1,5 +1,4 @@
-{
-  "messstationen" : [
+[
     {
         "id": "010",
         "name": "Messcontainer MC010",
@@ -13,7 +12,7 @@
           "city": "Berlin",
           "bezirk": "Mitte"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC010.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC010.htm"
     },
     {
         "id": "018",
@@ -30,7 +29,7 @@
           "city": "Berlin",
           "bezirk": "Tempelhof-Schöneberg"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC018.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC018.htm"
     },
     {
         "id": "027",
@@ -47,7 +46,7 @@
           "city": "Berlin",
           "bezirk": "Tempelhof-Schöneberg"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC027.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC027.htm"
     },
     {
         "id": "032",
@@ -64,7 +63,7 @@
           "city": "Berlin",
           "bezirk": "Charlottenburg-Wilmersdorf"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC032_u.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC032_u.htm"
     },
     {
         "id": "042",
@@ -81,7 +80,7 @@
           "city": "Berlin",
           "bezirk": "Neukölln"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC042.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC042.htm"
     },
     {
         "id": "077",
@@ -98,7 +97,7 @@
           "city": "Berlin",
           "bezirk": "Pankow"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC077.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC077.htm"
     },
     {
         "id": "085",
@@ -115,7 +114,7 @@
             "city": "Berlin",
             "bezirk": "Treptow-Köpenick"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC085.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC085.htm"
     },
     {
         "id": "115",
@@ -131,7 +130,7 @@
             "city": "Berlin",
             "bezirk": "Charlottenburg-Wilmersdorf"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC115.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC115.htm"
     },
     {
         "id": "117",
@@ -148,7 +147,7 @@
           "city": "Berlin",
           "bezirk": "Steglitz-Zehlendorf"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC117.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC117.htm"
       },
       {
         "id": "124",
@@ -165,7 +164,7 @@
           "city": "Berlin",
           "bezirk": "Tempelhof-Schöneberg"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC124.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC124.htm"
       },
       {
         "id": "143",
@@ -182,7 +181,7 @@
           "city": "Berlin",
           "bezirk": "Neukölln"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC143.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC143.htm"
       },
       {
         "id": "145",
@@ -199,7 +198,7 @@
           "city": "Berlin",
           "bezirk": "Reinickendorf"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC145.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC145.htm"
       },
       {
         "id": "171",
@@ -216,7 +215,7 @@
           "city": "Berlin",
           "bezirk": "Mitte"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC171.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC171.htm"
       },
       {
         "id": "174",
@@ -233,7 +232,7 @@
           "city": "Berlin",
           "bezirk": "Friedrichshain-Kreuzberg"
         },
-        "url":"/umwelt/umweltatlas/extra/3_12/d312_MC174.htm"
+        "url":"http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC174.htm"
       },
       {
         "id": "220",
@@ -245,7 +244,7 @@
         {
           "full": "Karl-Marx-Str. 77, 12043 Berlin, Neukölln"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC220.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC220.htm"
       },
       {
         "id": "282",
@@ -261,7 +260,6 @@
           "city": "Berlin",
           "bezirk": "Lichtenberg"
         },
-        "url": "/umwelt/umweltatlas/extra/3_12/d312_MC282.htm"
+        "url": "http://www.stadtentwicklung.berlin.de/umwelt/umweltatlas/extra/3_12/d312_MC282.htm"
       }
-  ]
-}
+]
