@@ -9,12 +9,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.json.Json;
-import javax.json.stream.JsonGenerator;
-import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -22,13 +18,14 @@ import java.util.HashMap;
  */
 public class BlumeWrapper {
 
+
     private final static String[] MEASURANDS =
             {
                     "Partikel-PM10", "Ruß", "Stickstoffdioxid", "Benzol",
                     "Kohlenmonoxid", "Ozon", "Schwefeldioxid"
             };
 
-    private static final int EXPECTED_FREQUENCY_CELLS = 14;
+    private static final int EXPECTED_MEASUREMENT_TYPE_HEADER_CELLS = 14;
     private static final String URL_FORMAT =
             "http://www.stadtentwicklung.berlin.de/umwelt/luftqualitaet/de/messnetz/tageswerte/download/%s.html";
     private static final String MEASUREMENT_UNIT = "µg/m³";
@@ -57,86 +54,102 @@ public class BlumeWrapper {
 
         //TODO get & check header
 
-        StringWriter stringWriter = new StringWriter();
-        JsonGenerator jsonGenerator = Json.createGenerator(stringWriter);
-
         Elements rows = table.getElementsByTag("tr");
 
-        ArrayList<String> frequencies = new ArrayList<>();
-        Element frequenciesRow = rows.eq(1).first();
-        Elements frequencyCells = frequenciesRow.children();
-        frequencyCells.remove(0); //skip first cell
+        //The second header row has our measurement types, get it and populate a list with the values
+        Element measurementTypesHeaderRow = rows.get(1);
+        Elements measurementTypeCells = measurementTypesHeaderRow.children();
+        measurementTypeCells.remove(0); //remove first cell (header column)
 
-        if (frequencyCells.size() != EXPECTED_FREQUENCY_CELLS) {
-            System.out.println("Unexpected number of frequency cells. Expected: " + EXPECTED_FREQUENCY_CELLS + ", found: " + frequencyCells.size());
+        //check the page still has the same number of measurement types we had originally
+        if (measurementTypeCells.size() != EXPECTED_MEASUREMENT_TYPE_HEADER_CELLS) {
+            System.out.println("Unexpected number of measurement type header cells.");
+            System.out.println("Expected: " + EXPECTED_MEASUREMENT_TYPE_HEADER_CELLS + ", found: " + measurementTypeCells.size());
+            System.out.println("Continuing...");
         }
 
-        for (Element cell : frequencyCells) {
-            String headerText = cell.text().trim();
-
-            if (!headerText.isEmpty())
-                frequencies.add(headerText);
-        }
+        //Filter out empty cells
+        String[] measurementTypes =
+                measurementTypeCells.stream()
+                                    .map(cell -> cell.text().trim())
+                                    .filter(text -> !text.isEmpty())
+                                    .toArray(String[]::new);
 
         DailyMeasurements dailyMeasurements = new DailyMeasurements();
         dailyMeasurements.date = date;
         dailyMeasurements.url = url;
+        dailyMeasurements.stationMeasurements = new HashMap<>();
 
-        HashMap<Station, Measurement[]> stationMeasurements = new HashMap<>();
-
+        //Process the table one row at a time
         //skip first two header rows
         for (int i = 2; i < rows.size(); i++) {
             Element row = rows.get(i);
             Elements cells = row.getElementsByTag("td");
 
-//            if (!cells.first().text().matches("^\\d{3}[ ][a-zA-ZäöüÄÖÜß]+"))
-//                continue; TODO regex not working :\
-
+            //Remove the station identifier header cell and parse the station ID & name
             Element stationCell = cells.remove(0);
-            String stationText = stationCell.text();
-            String[] stationTokens = stationText.split("\u00a0");
+            Station station = parseStation(stationCell);
 
-            if (stationTokens.length != 2) {
-                System.out.println("Station tokens != 2. Input string was '"+ stationText + "'");
-                continue;
-            }
+            //Skip rows which are not data rows
+            //there should be 2 of these; the separator row and the last row
+            if (station == null) { continue; }
 
-            String stationId = stationTokens[0];
-            String stationName = stationTokens[1];
+            Measurement[] measurements = parseMeasurements(date, measurementTypes, cells, station);
 
-            Station station = new Station();
-            station.id = stationId;
-            station.name = stationName;
-
-            ArrayList<Measurement> measurements = new ArrayList<>();
-
-            for (int j = 0; j < MEASURANDS.length; j++) {
-                String measurand = MEASURANDS[j];
-                Measurement measurement = new Measurement();
-                measurement.date = date;
-                measurement.station = station;
-
-                for (int offset = 0; offset < 2; offset++){
-                    int index = (j*2) + offset;
-                    String frequency = frequencies.get(index);
-                    String value = cells.eq(index).text();
-
-                    if (value.equals("---"))
-                        value = null;
-
-                    measurement.measurand = measurand;
-                    measurement.measurementType = frequency;
-                    measurement.value = value == null ? null : Double.parseDouble(value);
-                    measurement.unit = MEASUREMENT_UNIT;
-                }
-
-                measurements.add(measurement);
-            }
-
-            stationMeasurements.put(station, measurements.toArray(new Measurement[0]));
+            dailyMeasurements.stationMeasurements.put(station, measurements);
         }
 
-        dailyMeasurements.stationMeasurements = stationMeasurements;
         return dailyMeasurements;
+    }
+
+    private static Measurement[] parseMeasurements(
+            LocalDate date, String[] measurementTypes, Elements cells, Station station) {
+
+        Measurement[] measurements = new Measurement[MEASURANDS.length];
+
+        for (int j = 0; j < MEASURANDS.length; j++) {
+            String measurand = MEASURANDS[j];
+
+            Measurement measurement = new Measurement();
+            measurement.date = date;
+            measurement.station = station;
+
+            for (int offset = 0; offset < 2; offset++){
+                int index = (j*2) + offset;
+                String frequency = measurementTypes[index];
+                String value = cells.eq(index).text();
+
+                //Replace "blank" values with nulls
+                if (value.equals("---"))
+                    value = null;
+
+                measurement.measurand = measurand;
+                measurement.measurementType = frequency;
+                measurement.value = value == null ? null : Double.parseDouble(value);
+                measurement.unit = MEASUREMENT_UNIT;
+            }
+
+            measurements[j] = measurement;
+        }
+
+        return measurements;
+    }
+
+    private static Station parseStation(Element stationCell) {
+        String stationIdentifier = stationCell.text();
+        String[] stationTokens = stationIdentifier.split("\u00a0"); //split by &nbsp;
+
+        if (stationTokens.length != 2) {
+            System.out.println("Station tokens != 2. Input string was '"+ stationIdentifier + "'");
+            return null;
+        }
+
+        String stationId = stationTokens[0];
+        String stationName = stationTokens[1];
+
+        //Get the station from our static resource by its id
+        //we do this since the static resource has information we need (like the coordinates)
+        Station station = StationsStaticDataProvider.get(stationId);
+        return station;
     }
 }
