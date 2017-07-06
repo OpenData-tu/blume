@@ -23,7 +23,7 @@ public class BlumeWrapper {
             {
                     "Partikel-PM10", "Ruß", "Stickstoffdioxid", "Benzol",
                     "Kohlenmonoxid", "Ozon", "Schwefeldioxid"
-            };
+            }; //TODO this list should be created dynamically based on the header row of the response html
 
     private static final int EXPECTED_MEASUREMENT_TYPE_HEADER_CELLS = 14;
     private static final String URL_FORMAT =
@@ -140,7 +140,7 @@ public class BlumeWrapper {
         String[] stationTokens = stationIdentifier.split("\u00a0"); //split by &nbsp;
 
         if (stationTokens.length != 2) {
-            System.out.println("Station tokens != 2. Input string was '"+ stationIdentifier + "'");
+            //System.out.println("Station tokens != 2. Input string was '"+ stationIdentifier + "'");
             return null;
         }
 
