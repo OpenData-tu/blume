@@ -43,7 +43,7 @@ public class BlumeWrapper {
         Connection.Response response = Jsoup.connect(url).execute();
 
         if (response.statusCode() == 404) {
-            logger.error("Got HTTP 404 when when getting %s", url);
+            logger.error("Got HTTP 404 when when getting {}", url);
             throw new Exception(
                     String.format("No data is available for %s (HTTP 404)", date.toString()));
         }
